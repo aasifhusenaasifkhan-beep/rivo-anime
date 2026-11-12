@@ -1,0 +1,61 @@
+<!doctype html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rivo Anime</title><meta name="description" content="Rivo Anime - Hindi Dubbed &amp; Subbed Anime download"><meta name="google-site-verification" content="YOUR_GOOGLE_CODE">
+<style>
+:root{--bg:#0f1117;--c:#1b1e29;--t:#eee;--a:#ff4d6d}
+@media(prefers-color-scheme:light){:root{--bg:#f4f4f7;--c:#fff;--t:#111}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:15px system-ui}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--c);position:sticky;top:0;z-index:5}
+header b{font-size:19px;color:var(--a)}button,input,select{font:inherit}.ib{background:none;border:0;color:var(--t);font-size:22px}
+main{max-width:900px;margin:auto;padding:12px}.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.card{background:var(--c);border-radius:10px;overflow:hidden;cursor:pointer;position:relative;padding-bottom:6px}.card img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block}
+.card p{margin:8px}.card .btn{width:calc(100% - 16px);margin:0 8px}.bd{position:absolute;top:6px;left:6px;background:var(--a);color:#fff;font-size:11px;padding:2px 6px;border-radius:6px}
+.btn{display:block;text-align:center;text-decoration:none;background:var(--a);color:#fff;border:0;padding:10px 14px;border-radius:8px;margin:6px 0;width:100%;user-select:none;touch-action:none}
+.pill{display:inline-block;background:var(--c);color:var(--t);text-decoration:none;border:0;padding:4px 10px;border-radius:99px;margin:2px;font-size:13px;cursor:pointer}
+#drawer{position:fixed;inset:0 30% 0 0;background:var(--c);padding:16px;transform:translateX(-110%);transition:.2s;z-index:9;overflow:auto}#drawer.o{transform:none}
+.m{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:20}.m>div{background:var(--c);padding:18px;border-radius:12px;width:min(92%,360px)}
+input,select{width:100%;padding:9px;margin:4px 0;border-radius:8px;border:1px solid #888;background:var(--bg);color:var(--t)}
+.ep{display:flex;gap:6px;align-items:center;background:var(--c);padding:8px;border-radius:8px;margin:5px 0}.ep span{flex:1}.ep .btn{width:auto;margin:0}
+</style></head><body>
+<header><button class=ib onclick="$('#drawer').classList.toggle('o')">•••</button><b>Rivo Anime</b><button class=ib onclick="srch()">🔍</button></header>
+<div id=drawer></div><main id=v></main><div class=m id=m onclick="if(event.target==this)closeM()"><div id=md></div></div>
+<script>
+const API='https://YOUR-WORKER.workers.dev',$=s=>document.querySelector(s);
+let S={cat:'',genre:'',q:'',az:'',page:1},max=1,tok=localStorage.tok||'',meta={};
+const sl=(n,id)=>String(n).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+id;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const api=async(p,b,h={})=>{const r=await fetch(API+p,{method:b?'POST':'GET',headers:{authorization:'Bearer '+tok,...h},body:b?JSON.stringify(b):undefined});const d=await r.json();if(!r.ok)throw d.error||'Error';return d};
+const modal=h=>{$('#md').innerHTML=h;$('#m').style.display='flex'},closeM=()=>$('#m').style.display='none';
+function hold(b,cb,label){let t,i,n;const L=label+' (5 sec dabao)',clr=()=>{clearTimeout(t);clearInterval(i);b.textContent=L};b.textContent=L;
+b.onpointerdown=e=>{e.preventDefault();n=5;b.textContent=n+'...';i=setInterval(()=>b.textContent=--n+'...',1000);t=setTimeout(()=>{clr();cb()},5000)};
+b.onpointerup=b.onpointerleave=clr;b.oncontextmenu=e=>e.preventDefault()}
+async function feed(){const q=new URLSearchParams(Object.fromEntries(Object.entries(S).filter(([,v])=>v)));const d=await api('/api/posts?'+q);max=d.pages||1;
+$('#v').innerHTML=`<div class=g>${d.posts.map(p=>`<a class=card href="/anime/${sl(p.name,p.id)}" onclick="event.preventDefault();post(${p.id})" style="display:block;color:inherit;text-decoration:none"><span class=bd>${esc(p.category)}</span><img src="${esc(p.image)}" loading=lazy><p>${esc(p.name)}</p><div class=btn>Dekho</div></a>`).join('')||'Kuch nahi mila'}</div><p style="text-align:center"><button class=pill onclick="pg(-1)">◀</button> ${S.page}/${max} <button class=pill onclick="pg(1)">▶</button></p>`}
+const pg=d=>{S.page=Math.min(max,Math.max(1,S.page+d));feed()};
+function filt(k,v){S={cat:'',genre:'',q:'',az:'',page:1};if(k)S[k]=v;$('#drawer').classList.remove('o');history.replaceState(0,'','/');feed()}
+const srch=()=>{const q=prompt('Anime ka naam?');if(q!==null)filt('q',q)};
+function menu(){const P=(k,a)=>a.map(x=>`<span class=pill onclick="filt('${k}','${esc(x)}')">${esc(x)}</span>`).join('');
+$('#drawer').innerHTML=`<button class=btn onclick="filt()">🏠 Home</button><h3>Category</h3>${P('cat',meta.cats)}<h3>Genre</h3>${P('genre',meta.genres)}<h3>A-Z / 0-9</h3>${P('az',[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ','0-9'])}<button class=btn onclick="login()">Gmail Login</button>`}
+async function post(id){const{post:p,eps}=await api('/api/post/'+id),by={};eps.forEach(e=>(by[e.season]??=[]).push(e));
+$('#v').innerHTML=`<img src="${esc(p.image)}" style="width:100%;border-radius:10px"><h2>${esc(p.name)}</h2><span class=pill>${esc(p.category)}</span><span class=pill>${esc(p.year)}</span><div>${p.genres.split(' ').filter(Boolean).map(g=>`<span class=pill onclick="filt('genre','${esc(g)}')">#${esc(g)}</span>`).join('')}</div><p>${esc(p.synopsis)}</p>`+
+Object.entries(by).map(([s,l])=>`<h3>Season ${esc(s)}</h3>`+l.map(e=>`<div class=ep><span>Ep ${esc(e.ep)} • ${esc(e.quality)}</span>${e.play_link?`<a class=pill href="${esc(e.play_link)}" target=_blank>▶ Play</a>`:''}<button class=btn onclick="dl(${e.id})">⬇</button></div>`).join('')).join('');document.title=p.name+' | Rivo Anime';history.replaceState(0,'','/anime/'+sl(p.name,id));scrollTo(0,0)}
+async function dl(ep){try{const r=await api('/api/dl',{ep});if(r.link)return modal(`<h3>VIP Download</h3><a class=btn href="${esc(r.link)}">Direct Link</a>`);
+modal(`<h3>Download</h3>`+(meta.shorts.length?meta.shorts.map(s=>`<button class=btn data-s=${s.id}></button>`).join(''):'Koi shortener set nahi')+`<button class=btn onclick="login()">⭐ VIP Login</button>`);
+document.querySelectorAll('[data-s]').forEach(b=>hold(b,async()=>{try{location.href=(await api('/api/dl/start',{ep,sid:b.dataset.s})).url}catch(e){alert(e)}},'Solve '+meta.shorts.find(s=>s.id==b.dataset.s).n))}catch(e){alert(e)}}
+const login=()=>modal(`<h3>Login</h3><input id=em placeholder=Gmail><input id=pw type=password placeholder=Password><button class=btn onclick="doLogin()">Login</button>`);
+async function doLogin(){try{tok=(await api('/api/login',{email:$('#em').value,pass:$('#pw').value})).token;localStorage.tok=tok;closeM();alert('VIP login ho gaya')}catch(e){alert(e)}}
+const AD={addPost:['name','image','category','genres','year','synopsis'],addEpisode:['post','season','ep','dl_link','play_link','quality'],delPost:['id'],delEpisode:['id'],addShortener:['home','api'],delShortener:['id'],addUser:['email','pass'],delUser:['email'],setImage:['id','image'],setPopup:['script'],delPopup:[]};
+const ad=(a,b)=>api('/api/admin/'+a,b,{'x-admin':localStorage.ak});
+const af=()=>$('#af').innerHTML=AD[$('#ac').value].map(f=>`<input name=${f} placeholder="${f}${f=='quality'?' (FHD/HD/SD)':''}">`).join('');
+function admin(){localStorage.ak=localStorage.ak||prompt('Admin key');$('#v').innerHTML=`<h2>Admin</h2><textarea id=pst rows=8 placeholder="Saari details paste karo:&#10;Name: Boruto&#10;Category: Hindi Dubbed Anime&#10;Genre: #action #adventure&#10;Year: 2017&#10;Story: ...&#10;Image: https://..." style="width:100%;padding:9px;border-radius:8px;border:1px solid #888;background:var(--bg);color:var(--t)"></textarea><button class=btn onclick=fill()>⚡ Auto-fill</button><select id=ac onchange=af()>${Object.keys(AD).map(a=>`<option>${a}`).join('')}</select><div id=af></div><button class=btn onclick=run()>Run</button><select id=lt><option>posts<option>episodes<option>shorteners<option>users</select><button class=btn onclick=ls()>List (IDs dekho)</button><pre id=out style="white-space:pre-wrap"></pre>`;af()}
+function fill(){const M={name:'name',title:'name',anime:'name',post:'post',genre:'genres',genres:'genres',category:'category',cat:'category',year:'year',release:'year',story:'synopsis',synopsis:'synopsis',plot:'synopsis',summary:'synopsis',image:'image',poster:'image',link:'image',season:'season',episode:'ep',ep:'ep',download:'dl_link',dl:'dl_link',play:'play_link',quality:'quality'},o={};let k;
+$('#pst').value.split('\n').forEach(l=>{const m=l.match(/^\s*([A-Za-z ]+?)\s*[:：=]\s*(.*)$/),f=m&&M[m[1].toLowerCase().trim()];
+if(f){k=f;o[k]=m[2].trim()}else if(/^\s*https?:\/\//.test(l)&&!o.image)o.image=l.trim();else if(k&&l.trim())o[k]+=' '+l.trim()});
+const ep=o.dl_link||o.ep;if(ep&&o.name&&!o.post)o.post=o.name;if(o.quality)o.quality=o.quality.toUpperCase();
+$('#ac').value=ep?'addEpisode':'addPost';af();document.querySelectorAll('#af input').forEach(i=>{if(o[i.name]!=null)i.value=o[i.name]});$('#out').textContent='Auto-fill ho gaya ✅ check karke Run dabao'}
+async function run(){const a=$('#ac').value,b={};if(a.startsWith('del')&&!confirm('Pakka delete?'))return;document.querySelectorAll('#af input').forEach(i=>b[i.name]=i.value);try{await ad(a,b);$('#out').textContent='Done ✅'}catch(e){$('#out').textContent=e}}
+async function ls(){try{$('#out').textContent=JSON.stringify(await ad('list',{t:$('#lt').value}),null,1)}catch(e){$('#out').textContent=e}}
+(async()=>{try{meta=await api('/api/meta')}catch(e){return $('#v').textContent='API set karo (API const)'}
+if(meta.popup){const t=document.createElement('template');t.innerHTML=meta.popup;t.content.querySelectorAll('script').forEach(o=>{const s=document.createElement('script');[...o.attributes].forEach(a=>s.setAttribute(a.name,a.value));s.textContent=o.textContent;document.body.append(s)})}
+const pm=location.pathname.match(/^\/anime\/.*-(\d+)\/?$/),pid=pm&&pm[1];menu();location.hash=='#admin'?admin():pid?post(pid):feed();
+const f=new URLSearchParams(location.search).get('f');
+if(f){modal(`<h3>Verify</h3><button class=btn id=vb></button>`);hold($('#vb'),async()=>{try{const r=await api('/api/dl/verify',{f});modal(`<a class=btn href="${esc(r.link)}">Link kholo</a>`)}catch(e){modal(`<p>${esc(e)}</p>`)}},'Get Link verify')}})();
+</script></body></html>
