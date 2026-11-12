@@ -18,7 +18,7 @@ input,select{width:100%;padding:9px;margin:4px 0;border-radius:8px;border:1px so
 <header><button class=ib onclick="$('#drawer').classList.toggle('o')">•••</button><b>Rivo Anime</b><button class=ib onclick="srch()">🔍</button></header>
 <div id=drawer></div><main id=v></main><div class=m id=m onclick="if(event.target==this)closeM()"><div id=md></div></div>
 <script>
-const API='https://YOUR-WORKER.workers.dev',$=s=>document.querySelector(s);
+const API='https://rivo-api.aasifhusenaasifkhan.workers.dev',$=s=>document.querySelector(s);
 let S={cat:'',genre:'',q:'',az:'',page:1},max=1,tok=localStorage.tok||'',meta={};
 const sl=(n,id)=>String(n).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+id;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
