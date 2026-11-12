@@ -53,7 +53,8 @@ const ep=o.dl_link||o.ep;if(ep&&o.name&&!o.post)o.post=o.name;if(o.quality)o.qua
 $('#ac').value=ep?'addEpisode':'addPost';af();document.querySelectorAll('#af input').forEach(i=>{if(o[i.name]!=null)i.value=o[i.name]});$('#out').textContent='Auto-fill ho gaya ✅ check karke Run dabao'}
 async function run(){const a=$('#ac').value,b={};if(a.startsWith('del')&&!confirm('Pakka delete?'))return;document.querySelectorAll('#af input').forEach(i=>b[i.name]=i.value);try{await ad(a,b);$('#out').textContent='Done ✅'}catch(e){$('#out').textContent=e}}
 async function ls(){try{$('#out').textContent=JSON.stringify(await ad('list',{t:$('#lt').value}),null,1)}catch(e){$('#out').textContent=e}}
-(async()=>{try{meta=await api('/api/meta')}catch(e){return $('#v').textContent='API set karo (API const)'}
+addEventListener('hashchange',()=>location.reload());
+(async()=>{if(location.hash=='#admin')admin();try{meta=await api('/api/meta')}catch(e){return location.hash=='#admin'||($('#v').textContent='API set karo (API const)')}
 if(meta.popup){const t=document.createElement('template');t.innerHTML=meta.popup;t.content.querySelectorAll('script').forEach(o=>{const s=document.createElement('script');[...o.attributes].forEach(a=>s.setAttribute(a.name,a.value));s.textContent=o.textContent;document.body.append(s)})}
 const pm=location.pathname.match(/^\/anime\/.*-(\d+)\/?$/),pid=pm&&pm[1];menu();location.hash=='#admin'?admin():pid?post(pid):feed();
 const f=new URLSearchParams(location.search).get('f');
