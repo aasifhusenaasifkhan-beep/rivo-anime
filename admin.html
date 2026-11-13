@@ -3,7 +3,7 @@
 input,select,textarea{width:100%;padding:10px;margin:5px 0;border-radius:10px;border:1px solid #16312d;background:#0d111b;color:#f1f5f9;font:inherit}
 .btn{display:block;width:100%;background:linear-gradient(90deg,#00ff88,#00e5ff);color:#000;font-weight:700;border:0;padding:12px;border-radius:12px;margin:8px 0}pre{white-space:pre-wrap;background:#0d111b;padding:10px;border-radius:10px}</style></head><body><main id=v></main>
 <script>
-const API='https://YOUR-WORKER.workers.dev',$=s=>document.querySelector(s);
+const API='https://rivo-api.aasifhusenaasifkhan.workers.dev',$=s=>document.querySelector(s);
 const ad=async(a,b)=>{const r=await fetch(API+'/api/admin/'+a,{method:'POST',headers:{'x-admin':sessionStorage.ak||''},body:JSON.stringify(b||{})});const d=await r.json();if(!r.ok)throw d.error||'Error';return d};
 const AD={addPost:['name','image','category','genres','year','synopsis'],addEpisode:['post','season','ep','dl_link','play_link','quality'],delPost:['id'],delEpisode:['id'],addShortener:['home','api'],delShortener:['id'],addUser:['email','pass'],delUser:['email'],setImage:['id','image'],setPopup:['script'],delPopup:[]};
 const gate=()=>{$('#v').innerHTML='<h2>🔒 Admin Login</h2><input id=k type=password placeholder="Admin password"><button class=btn onclick=go()>Login</button><p id=out></p>'};
