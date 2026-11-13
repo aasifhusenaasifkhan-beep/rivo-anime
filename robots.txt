@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 Disallow: /*?f=
-Sitemap: https://YOUR-SITE.pages.dev/sitemap.xml
+Disallow: /admin
+Sitemap: https://rivoanime.pages.dev/sitemap.xml
