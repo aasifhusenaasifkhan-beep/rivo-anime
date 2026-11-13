@@ -1,0 +1,21 @@
+<!doctype html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Admin</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#05080f;color:#f1f5f9;font:15px system-ui}main{max-width:560px;margin:auto;padding:16px}
+input,select,textarea{width:100%;padding:10px;margin:5px 0;border-radius:10px;border:1px solid #16312d;background:#0d111b;color:#f1f5f9;font:inherit}
+.btn{display:block;width:100%;background:linear-gradient(90deg,#00ff88,#00e5ff);color:#000;font-weight:700;border:0;padding:12px;border-radius:12px;margin:8px 0}pre{white-space:pre-wrap;background:#0d111b;padding:10px;border-radius:10px}</style></head><body><main id=v></main>
+<script>
+const API='https://YOUR-WORKER.workers.dev',$=s=>document.querySelector(s);
+const ad=async(a,b)=>{const r=await fetch(API+'/api/admin/'+a,{method:'POST',headers:{'x-admin':sessionStorage.ak||''},body:JSON.stringify(b||{})});const d=await r.json();if(!r.ok)throw d.error||'Error';return d};
+const AD={addPost:['name','image','category','genres','year','synopsis'],addEpisode:['post','season','ep','dl_link','play_link','quality'],delPost:['id'],delEpisode:['id'],addShortener:['home','api'],delShortener:['id'],addUser:['email','pass'],delUser:['email'],setImage:['id','image'],setPopup:['script'],delPopup:[]};
+const gate=()=>{$('#v').innerHTML='<h2>🔒 Admin Login</h2><input id=k type=password placeholder="Admin password"><button class=btn onclick=go()>Login</button><p id=out></p>'};
+async function go(){sessionStorage.ak=$('#k').value;try{await ad('ping');panel()}catch(e){sessionStorage.ak='';$('#out').textContent='Galat password'}}
+const af=()=>$('#af').innerHTML=AD[$('#ac').value].map(f=>`<input name=${f} placeholder="${f}${f=='quality'?' (FHD/HD/SD)':f=='season'?' (jaise 1, 2)':''}">`).join('');
+function panel(){$('#v').innerHTML=`<h2>Admin Panel <button onclick="sessionStorage.ak='';gate()" style="float:right">Logout</button></h2><textarea id=pst rows=7 placeholder="Saari details paste karo:&#10;Name: Boruto&#10;Category: Hindi Dubbed Anime&#10;Genre: #action #adventure&#10;Year: 2017&#10;Story: ...&#10;Image: https://..."></textarea><button class=btn onclick=fill()>⚡ Auto-fill</button><select id=ac onchange=af()>${Object.keys(AD).map(a=>`<option>${a}`).join('')}</select><div id=af></div><button class=btn onclick=run()>Run</button><select id=lt><option>posts<option>episodes<option>shorteners<option>users</select><button class=btn onclick=ls()>List (IDs dekho)</button><pre id=out></pre>`;af()}
+function fill(){const M={name:'name',title:'name',anime:'name',post:'post',genre:'genres',genres:'genres',category:'category',cat:'category',year:'year',release:'year',story:'synopsis',synopsis:'synopsis',plot:'synopsis',summary:'synopsis',image:'image',poster:'image',link:'image',season:'season',episode:'ep',ep:'ep',download:'dl_link',dl:'dl_link',play:'play_link',quality:'quality'},o={};let k;
+$('#pst').value.split('\n').forEach(l=>{const m=l.match(/^\s*([A-Za-z ]+?)\s*[:：=]\s*(.*)$/),f=m&&M[m[1].toLowerCase().trim()];
+if(f){k=f;o[k]=m[2].trim()}else if(/^\s*https?:\/\//.test(l)&&!o.image)o.image=l.trim();else if(k&&l.trim())o[k]+=' '+l.trim()});
+const ep=o.dl_link||o.ep;if(ep&&o.name&&!o.post)o.post=o.name;if(o.quality)o.quality=o.quality.toUpperCase();
+$('#ac').value=ep?'addEpisode':'addPost';af();document.querySelectorAll('#af input').forEach(i=>{if(o[i.name]!=null)i.value=o[i.name]});$('#out').textContent='Auto-fill ho gaya ✅ check karke Run dabao'}
+async function run(){const a=$('#ac').value,b={};if(a.startsWith('del')&&!confirm('Pakka delete?'))return;document.querySelectorAll('#af input').forEach(i=>b[i.name]=i.value);try{await ad(a,b);$('#out').textContent='Done ✅'}catch(e){$('#out').textContent=e}}
+async function ls(){try{$('#out').textContent=JSON.stringify(await ad('list',{t:$('#lt').value}),null,1)}catch(e){$('#out').textContent=e}}
+sessionStorage.ak?ad('ping').then(panel).catch(gate):gate();
+</script></body></html>
