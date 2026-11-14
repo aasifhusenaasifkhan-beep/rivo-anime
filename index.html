@@ -24,14 +24,18 @@ nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--c);bord
 #drawer{position:fixed;inset:0 25% 0 0;background:var(--c);padding:16px;transform:translateX(-110%);transition:.2s;z-index:9;overflow:auto}#drawer.o{transform:none}
 .m{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:20}.m>div{background:var(--c);border:1px solid var(--b);padding:18px;border-radius:16px;width:min(92%,360px)}.m .go{width:100%;margin:8px 0}
 input{width:100%;padding:10px;margin:5px 0;border-radius:10px;border:1px solid var(--b);background:var(--bg);color:var(--t);font:inherit}
+.bx{background:var(--c);border:1px solid var(--b);border-radius:20px;padding:14px 18px;margin-top:14px}.bx h6{margin:0 0 8px}.bx p{margin:0;line-height:1.5}
+.eb{display:flex;flex-direction:column;gap:8px}.eb .dl,.eb .vp,.eb .pb{width:130px;height:42px;margin:0;padding:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+.pl.sel{background:var(--g1);color:#000;border-color:var(--g1)}
 </style></head><body>
-<header><b>Rivo Anime</b></header><div class=bar><button class=ib onclick="$('#drawer').classList.toggle('o')">•••</button><button class=ib onclick="srch()">🔍</button></div>
-<div id=drawer></div><main id=v></main>
+<header><b>Rivo Anime</b></header><div class=bar><button class=ib onclick="openD()">•••</button><button class=ib onclick="srch()">🔍</button></div>
+<div id=ov onclick="closeD()" style="display:none;position:fixed;inset:0;z-index:8"></div><div id=drawer></div><main id=v></main>
 <nav><button onclick="filt()"><span>🏠</span>Home</button><button onclick="login()"><span>💎</span>VIP Pass</button></nav>
 <div class=m id=m onclick="if(event.target==this)closeM()"><div id=md></div></div>
 <script>
 const API='https://rivo-api.aasifhusenaasifkhan.workers.dev',$=s=>document.querySelector(s);
 let S={cat:'',genre:'',q:'',az:'',page:1},max=1,tok=localStorage.tok||'',meta={},E=[],cs=null;
+const cap=s=>String(s).replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
 const sl=(n,id)=>String(n).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+id,sn=s=>String(s).replace(/^season\s*/i,'');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const api=async(p,b)=>{const r=await fetch(API+p,{method:b?'POST':'GET',headers:{authorization:'Bearer '+tok},body:b?JSON.stringify(b):undefined});const d=await r.json();if(!r.ok)throw d.error||'Error';return d};
@@ -40,28 +44,38 @@ function hold(b,cb,label){let t,i,n;const L=label+' (5 sec dabao)',clr=()=>{clea
 b.onpointerdown=e=>{e.preventDefault();n=5;b.textContent=n+'...';i=setInterval(()=>b.textContent=--n+'...',1000);t=setTimeout(()=>{clr();cb()},5000)};
 b.onpointerup=b.onpointerleave=clr;b.oncontextmenu=e=>e.preventDefault()}
 async function feed(){const q=new URLSearchParams(Object.fromEntries(Object.entries(S).filter(([,v])=>v)));const d=await api('/api/posts?'+q);max=d.pages||1;
-$('#v').innerHTML=`<div class=g>${d.posts.map(p=>`<a class=card href="/anime/${sl(p.name,p.id)}" onclick="event.preventDefault();post(${p.id})"><div class=im><img src="${esc(p.image)}" loading=lazy><span class=bd style="left:12px;top:12px">WATCH NOW</span><span class=bd style="right:12px;top:12px">${esc(p.category)}</span></div><h3>${esc(p.name)}</h3><div class=go>▶ Watch Episode</div></a>`).join('')||'Kuch nahi mila'}</div><p style="text-align:center"><button class=pl onclick="pg(-1)">◀</button> ${S.page}/${max} <button class=pl onclick="pg(1)">▶</button></p>`}
+$('#v').innerHTML=`${chip()}<div class=g>${d.posts.map(p=>`<a class=card href="/anime/${sl(p.name,p.id)}" onclick="event.preventDefault();post(${p.id})"><div class=im><img src="${esc(p.image)}" loading=lazy><span class=bd style="left:12px;top:12px">WATCH NOW</span><span class=bd style="right:12px;top:12px">${esc(p.category)}</span></div><h3>${esc(p.name)}</h3><div class=go>▶ Watch Episode</div></a>`).join('')||'<p>Is category aur genre ki koi post nahi hai</p>'}</div><p style="text-align:center"><button class=pl onclick="pg(-1)">◀</button> ${S.page}/${max} <button class=pl onclick="pg(1)">▶</button></p>`}
 const pg=d=>{S.page=Math.min(max,Math.max(1,S.page+d));feed()};
-function filt(k,v){S={cat:'',genre:'',q:'',az:'',page:1};if(k)S[k]=v;$('#drawer').classList.remove('o');history.replaceState(0,'','/');feed()}
+let inApp=false,sel={cat:'',genres:[]};
+const chip=()=>S.cat||S.genre?`<p style="margin:0 0 12px">🔎 ${esc([S.cat,...(S.genre?S.genre.split(',').map(cap):[])].filter(Boolean).join(' • '))} <button class=pl onclick="filt()">✕ Hata do</button></p>`:'';
+const curG=()=>sel.cat&&meta.cg&&meta.cg[sel.cat]?meta.cg[sel.cat]:meta.genres;
+const selC=i=>{const c=meta.cats[i];sel.cat=sel.cat==c?'':c;const g=curG();sel.genres=sel.genres.filter(x=>g.includes(x));menu()};
+const selG=i=>{const g=curG()[i];sel.genres=sel.genres.includes(g)?sel.genres.filter(x=>x!=g):[...sel.genres,g];menu()};
+function applySel(){S={cat:sel.cat,genre:sel.genres.join(','),q:'',az:'',page:1};closeD();if(location.pathname!='/'){history.pushState(0,'','/');inApp=true}feed()}
+const closeD=()=>{$('#drawer').classList.remove('o');$('#ov').style.display='none'},openD=()=>{$('#drawer').classList.add('o');$('#ov').style.display='block'};
+function filt(k,v){S={cat:'',genre:'',q:'',az:'',page:1};if(k)S[k]=v;sel={cat:S.cat,genres:S.genre?S.genre.split(','):[]};menu();closeD();if(location.pathname!='/'){history.pushState(0,'','/');inApp=true}feed()}
+const goBack=()=>inApp?history.back():filt();
+function route(){closeD();closeM();const pm=location.pathname.match(/^\/anime\/.*-(\d+)\/?$/);pm?post(pm[1],false):feed()}
+addEventListener('popstate',route);
 const srch=()=>{const q=prompt('Anime ka naam?');if(q!==null)filt('q',q)};
-function menu(){const P=(k,a)=>a.map(x=>`<span class=pl onclick="filt('${k}','${esc(x)}')">${esc(x)}</span>`).join('');
-$('#drawer').innerHTML=`<h3>Category</h3>${P('cat',meta.cats)}<h3>Genre</h3>${P('genre',meta.genres)}<h3>A-Z / 0-9</h3>${P('az',[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ','0-9'])}<br><br><button class=go style="width:100%;margin:0" onclick="login()">Gmail Login</button>`}
-async function post(id){const{post:p,eps}=await api('/api/post/'+id);E=eps;cs=null;
-$('#v').innerHTML=`<div class=pc><img class=ban src="${esc(p.image)}"><h1>${esc(p.name)}</h1><div><span class="pl or">${esc(p.category)}</span><span class=pl>📅 ${esc(p.year)}</span></div><h6>GENRES</h6><div>${p.genres.split(' ').filter(Boolean).map((g,i)=>`<span class="pl c${i%3}" onclick="filt('genre','${esc(g)}')">${esc(g[0].toUpperCase()+g.slice(1))}</span>`).join('')}</div><h6>SHORT STORY</h6><p style="margin-top:0">${esc(p.synopsis)}</p></div><h2>⬢ Download <small>${eps.length} total</small></h2><div id=tabs></div><div id=el></div>`;
-epl();document.title=p.name+' | Rivo Anime';history.replaceState(0,'','/anime/'+sl(p.name,id));scrollTo(0,0)}
+function menu(){const st=$('#drawer').scrollTop,L=meta.links||{},ln=(u,t)=>/^https?:\/\//.test(u||'')?`<a class=go style="width:100%;margin:8px 0" href="${esc(u)}" target=_blank>${t}</a>`:'',G=curG();
+$('#drawer').innerHTML=`<div style="position:sticky;top:-16px;background:var(--c);padding:8px 0;display:flex;gap:8px;align-items:center;z-index:2"><button class=go style="margin:0;flex:1;width:auto" onclick="applySel()">✅ Done</button><button class=pl onclick="filt()">Reset</button><button class=ib onclick="closeD()">✕</button></div><h3>Category</h3>${meta.cats.map((x,i)=>`<span class="pl${sel.cat==x?' sel':''}" onclick="selC(${i})">${esc(x)}</span>`).join('')}<h3>Genre <small style="font-weight:400;color:var(--m)">(ek se zyada chun sakte ho)</small></h3>${G.map((x,i)=>`<span class="pl${sel.genres.includes(x)?' sel':''}" onclick="selG(${i})">${esc(cap(x))}</span>`).join('')}<h3>A-Z / 0-9</h3>${[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ','0-9'].map(x=>`<span class=pl onclick="filt('az','${x}')">${x}</span>`).join('')}<br><br><button class=go style="width:100%;margin:8px 0" onclick="login()">Gmail Login</button>${ln(L.c,'📢 Telegram Channel')}${ln(L.g,'👥 Telegram Group')}`;$('#drawer').scrollTop=st}
+async function post(id,push=true){const{post:p,eps}=await api('/api/post/'+id);E=eps;cs=null;
+$('#v').innerHTML=`<button class=pl onclick="goBack()" style="font-size:15px;margin-bottom:10px">← Back</button><div class=pc><img class=ban src="${esc(p.image)}"><h1>${esc(p.name)}</h1><div style="margin:0 18px"><span class="pl or">${esc(p.category)}</span></div></div><div class=bx><h6>GENRES</h6><div>${p.genres.split(' ').filter(Boolean).map((g,i)=>`<span class="pl c${i%3}" onclick="filt('genre','${esc(g)}')">${esc(cap(g))}</span>`).join('')||'-'}</div></div>${p.year?`<div class=bx><h6>RELEASE DATE</h6><span class=pl>📅 ${esc(p.year)}</span></div>`:''}${p.synopsis?`<div class=bx><h6>SHORT STORY</h6><p>${esc(p.synopsis)}</p></div>`:''}<h2>⬢ Download <small>${eps.length} total</small></h2><div id=tabs></div><div id=el></div>`;
+epl();document.title=p.name+' | Rivo Anime';if(push){history.pushState(0,'','/anime/'+sl(p.name,id));inApp=true};scrollTo(0,0)}
 function epl(){const by={};E.forEach(e=>(by[e.season]??=[]).push(e));const ks=Object.keys(by).sort((a,b)=>parseInt(sn(a))-parseInt(sn(b)));cs=by[cs]?cs:ks[0];
 const n=l=>l.length+(l.length>1?' entries':' entry');
 $('#tabs').innerHTML=ks.map(k=>`<button class="tab${k==cs?' on':''}" onclick="cs='${esc(k)}';epl()"><b>Season ${esc(sn(k))}</b><small>${n(by[k])}</small></button>`).join('');
 const q={};(by[cs]||[]).forEach(e=>(q[e.quality]??=[]).push(e));
-$('#el').innerHTML=`<h3 class=sg>Season ${esc(sn(cs))}</h3>`+Object.entries(q).sort((a,b)=>'FHD,HD,SD'.indexOf(a[0])-'FHD,HD,SD'.indexOf(b[0])).map(([k,l])=>`<div class=qb><div class=qh><span class="qt ${esc(k)}">${esc(k)}</span>Quality • ${n(l)}</div>${l.map(e=>`<div class=er><div><b>${/^\d+$/.test(e.ep)?'Episode ':'Episodes '}${esc(e.ep)}</b><br><small>Season ${esc(sn(e.season))} • Quality ${esc(e.quality)}</small></div><div>${e.play_link?`<a class=pb href="${esc(e.play_link)}" target=_blank>▶</a>`:''}<button class=dl onclick="dl(${e.id})">⬇ Download</button><button class=vp onclick="vip(${e.id})">💎 VIP</button></div></div>`).join('')}</div>`).join('')}
+$('#el').innerHTML=`<h3 class=sg>Season ${esc(sn(cs))}</h3>`+Object.entries(q).sort((a,b)=>'FHD,HD,SD'.indexOf(a[0])-'FHD,HD,SD'.indexOf(b[0])).map(([k,l])=>`<div class=qb><div class=qh><span class="qt ${esc(k)}">${esc(k)}</span>Quality • ${n(l)}</div>${l.map(e=>`<div class=er><div><b>${/^\d+$/.test(e.ep)?'Episode ':'Episodes '}${esc(e.ep)}</b><br><small>Season ${esc(sn(e.season))} • Quality ${esc(e.quality)}</small></div><div class=eb><button class=dl onclick="dl(${e.id})">⬇ Download</button><button class=vp onclick="vip(${e.id})">💎 VIP</button>${e.play_link?`<a class=pb href="${esc(e.play_link)}" target=_blank>▶ Play</a>`:''}</div></div>`).join('')}</div>`).join('')}
 function dl(ep){modal(`<h3>Solve Shortener</h3>`+(meta.shorts.length?meta.shorts.map(s=>`<button class=go data-s=${s.id}></button>`).join(''):'Shortener set nahi hai'));
 document.querySelectorAll('[data-s]').forEach(b=>hold(b,async()=>{try{location.href=(await api('/api/dl/start',{ep,sid:b.dataset.s})).url}catch(e){alert(e)}},'Solve '+meta.shorts.find(s=>s.id==b.dataset.s).n))}
 async function vip(ep){try{const r=await api('/api/dl',{ep});if(r.link)modal(`<h3>💎 VIP Download</h3><a class=go style="width:100%;margin:8px 0" href="${esc(r.link)}">Direct Link</a>`);else login()}catch(e){alert(e)}}
-const login=()=>{$('#drawer').classList.remove('o');modal(`<h3>VIP Login</h3><input id=em placeholder=Gmail><input id=pw type=password placeholder=Password><button class=go onclick="doLogin()" style="width:100%;margin:8px 0">Login</button>`)};
+const login=()=>{closeD();modal(`<h3>VIP Login</h3><input id=em placeholder=Gmail><input id=pw type=password placeholder=Password><button class=go onclick="doLogin()" style="width:100%;margin:8px 0">Login</button>`)};
 async function doLogin(){try{tok=(await api('/api/login',{email:$('#em').value,pass:$('#pw').value})).token;localStorage.tok=tok;closeM();alert('VIP login ho gaya')}catch(e){alert(e)}}
 (async()=>{try{meta=await api('/api/meta')}catch(e){return $('#v').textContent='API set karo (API const)'}
 if(meta.popup){const t=document.createElement('template');t.innerHTML=meta.popup;t.content.querySelectorAll('script').forEach(o=>{const s=document.createElement('script');[...o.attributes].forEach(a=>s.setAttribute(a.name,a.value));s.textContent=o.textContent;document.body.append(s)})}
-const pm=location.pathname.match(/^\/anime\/.*-(\d+)\/?$/),pid=pm&&pm[1];menu();pid?post(pid):feed();
+const pm=location.pathname.match(/^\/anime\/.*-(\d+)\/?$/),pid=pm&&pm[1];menu();pid?post(pid,false):feed();
 const f=new URLSearchParams(location.search).get('f');
 if(f){modal(`<h3>Verify</h3><button class=go id=vb style="width:100%;margin:8px 0"></button>`);hold($('#vb'),async()=>{try{const r=await api('/api/dl/verify',{f});modal(`<a class=go style="width:100%;margin:8px 0" href="${esc(r.link)}">Link kholo</a>`)}catch(e){modal(`<p>${esc(e)}</p>`)}},'Get Link verify')}})();
 </script></body></html>
