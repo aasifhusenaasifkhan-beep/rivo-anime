@@ -40,6 +40,12 @@ let S={cat:'',genre:'',q:'',az:'',page:1},max=1,tok=localStorage.gt||'',meta={},
 const wset=new Set;
 function addWarn(t){if(wset.has(t))return;wset.add(t);let d=$('#wn');if(!d){d=document.createElement('div');d.id='wn';d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:40;background:#3a1218;color:#ffb3bb;border-bottom:1px solid #ff4455;padding:10px 40px 10px 12px;font-size:13px;line-height:1.5';d.innerHTML='<span id=wt></span><span onclick="this.parentNode.remove()" style="position:absolute;right:12px;top:8px;font-size:18px;cursor:pointer">✕</span>';document.body.append(d)}$('#wt').insertAdjacentHTML('beforeend','<div>'+t+'</div>')}
 const W_AB='⚠️ Ad blocker / DNS blocker detect hua hai. Is site ke liye ad blocker band karo, tabhi ads aur popup chalenge.',W_BR='⚠️ Brave browser mein Shields ON hota hai, isse ads aur popup nahi chalte. Brave ka shield icon dabake is site ke liye Shields band karo.',W_VP='⚠️ VPN/Proxy detect hua hai. VPN band karke site dobara kholo.';
+const BLOCK_BRAVE=true; // false karoge to Brave users ko rok nahi lagegi (sirf warning)
+function braveWall(){const h=location.host+location.pathname+location.search,ua=navigator.userAgent,d=document.createElement('div');d.style.cssText='position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px';
+const go=/Android/i.test(ua)?'intent://'+h+'#Intent;scheme=https;package=com.android.chrome;end':/iPhone|iPad/i.test(ua)?'googlechromes://'+h:'';
+d.innerHTML='<div class=wc><b>Rivo Anime</b><h4>Brave browser support nahi hai</h4><p>Brave ke Shields site ke ads aur features rok dete hain. Site ko Chrome mein kholo.</p>'+(go?'<a class=go href="'+go+'">Chrome mein kholo</a>':'')+'<button class=go id=bcp>Link copy karo</button></div>';
+document.body.append(d);$('#bcp').onclick=()=>{const b=$('#bcp'),t=()=>b.textContent='Copy ho gaya ✅';navigator.clipboard?navigator.clipboard.writeText(location.href).then(t,()=>prompt('Link copy karo',location.href)):prompt('Link copy karo',location.href)}}
+if(BLOCK_BRAVE)(async()=>{try{if(navigator.brave&&await navigator.brave.isBrave())braveWall()}catch(e){}})();
 function enter(){try{sessionStorage.wl=1}catch(e){}$('#wl').style.display='none'}
 try{if(sessionStorage.wl||/^\/anime\//.test(location.pathname))$('#wl').style.display='none'}catch(e){}
 const cap=s=>String(s).replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
